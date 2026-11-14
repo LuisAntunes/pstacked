@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ function fixture(t) {
     put(`${plugin}/skills/example/SKILL.md`, "---\r\nname: example\r\ndescription: Fixture skill\r\ndisable-model-invocation: true\r\n---\r\nRead [reference](references/example.md) and [guide](../../docs/guide/README.md).\r\n");
     put(`${plugin}/skills/example/references/example.md`, "# Reference\r\nBundled evidence.\r\n");
     put(`${plugin}/skills/example/scripts/run.sh`, "#!/usr/bin/env bash\r\nprintf 'ok'\r\n");
+    chmodSync(join(dir, `${plugin}/skills/example/scripts/run.sh`), 0o755);
     put(`${plugin}/docs/guide/README.md`, "# Guide\r\n[Not packaged](../../automations/example.md)\r\n");
     put(`${plugin}/automations/example.md`, "# Optional automation\n");
     put(`${plugin}/agents/reviewer.md`, "---\nname: reviewer\ndescription: Reviewer\n---\n# Review\nRead the rubric.\n");
