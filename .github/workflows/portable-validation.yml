@@ -1,0 +1,51 @@
+name: Portable validation
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+    paths: ['pstack/**', 'thermos/**', 'portability/**', 'harness/**', 'scripts/**', '.agents/**', '.gitattributes', '.github/workflows/**']
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/generate-pstack-harness-trees.mjs --check
+      - run: node --test scripts/portable-harness.test.mjs scripts/sync-upstream.test.mjs
+      - name: Check generated CLI syntax
+        run: node --check scripts/portable-harness.mjs
+
+  upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install existing upstream test dependencies
+        run: npm install --no-save --package-lock=false ajv ajv-formats fast-check@4.5.3
+      - run: node scripts/validate-plugins.mjs
+      - run: node --disable-warning=ExperimentalWarning --test pstack/skills/*/scripts/test/*.test.ts

@@ -1,0 +1,70 @@
+name: Upstream sync
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    if: github.repository != 'cursor/plugins'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    outputs:
+      ref: ${{ steps.sync.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Configure bot commit identity
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Prepare upstream update PR
+        id: sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/sync-upstream.mjs
+
+  validate:
+    needs: prepare
+    if: needs.prepare.outputs.ref != ''
+    uses: ./.github/workflows/portable-validation.yml
+    with:
+      ref: ${{ needs.prepare.outputs.ref }}
+
+  report:
+    needs: [prepare, validate]
+    if: always() && needs.prepare.outputs.ref != ''
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Report cross-platform result in the update PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VALIDATION: ${{ needs.validate.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh pr view sync/upstream --json body --jq .body > body.md
+          printf '\nCross-platform validation: %s. Details: %s\n' "$VALIDATION" "$RUN_URL" >> body.md
+          gh pr edit sync/upstream --body-file body.md
+          if [ "$VALIDATION" = success ]; then
+            draft=$(gh pr view sync/upstream --json isDraft --jq .isDraft)
+            if [ "$draft" = true ]; then gh pr ready sync/upstream; fi
+          fi

@@ -1,3 +1,7 @@
+# pstacked
+
+Portable **pstack and Thermos**, with Codex-first adapters and upstream updates. [Installation, requirements, and compatibility](portability/README.md). Other plugins below are retained from upstream and are outside this fork's customization scope.
+
 # Cursor plugins
 
 Official Cursor plugins for popular developer tools, frameworks, and SaaS products. Each plugin is a standalone directory at the repository root with its own `.cursor-plugin/plugin.json` manifest.
