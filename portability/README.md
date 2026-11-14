@@ -16,7 +16,7 @@ codex plugin add pstacked@pstacked
 codex plugin add thermos@pstacked
 ```
 
-Open a fresh Codex chat after installation. Find `poteto-mode`, `setup-pstack`, and `thermos` in the skill selector. Select `poteto-mode` for a pstack workflow and `thermos` for an explicit combined review. The exact selector may include a plugin prefix. Installing the packages does not activate either mode, modify Ponytail, or run a review on every task.
+Open a fresh Codex chat after installation. Select `pstacked:poteto-mode` for a pstack workflow, `pstacked:setup-pstack` to configure roles, or `thermos:thermos` for a combined review. Installing the packages does not activate either mode, modify Ponytail, or run a review on every task.
 
 `setup-pstack` offers only models and reasoning settings supported in the current session. It asks before saving role preferences to `$CODEX_HOME/pstacked-models.md` (default `~/.codex/pstacked-models.md`). Inheritance works without any configuration file. A same-model review is labelled as such.
 

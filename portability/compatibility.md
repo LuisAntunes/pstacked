@@ -3,9 +3,9 @@
 | Host | Package | Deterministic checks | Live workflow qualification |
 | --- | --- | --- | --- |
 | Cursor | Original pstack and Thermos | Upstream manifests retained | Requires Cursor session |
-| Claude Code | Existing pstack harness | Existing generated content retained | Pending local qualification |
-| Codex desktop / CLI | pstacked and thermos marketplace packages | Windows local tests; three-OS CI | Both packages installed and enabled in Windows CLI 0.169.0-alpha.11.1. Live Thermos run blocked by Windows sandbox access. Desktop and full workflow checks pending. |
-| Hermes Agent | Two generated external skill directories | Same package checks | Pending active profile qualification |
+| Claude Code | Existing pstack harness | Existing generated content retained; Claude Code 2.1.173 validated plugin and marketplace manifests | Live workflow pending |
+| Codex desktop / CLI | pstacked and thermos marketplace packages | Windows local tests and [Windows, Linux, and macOS CI](https://github.com/LuisAntunes/pstacked/actions/runs/43641994632) passed | Both packages enabled in Windows Codex CLI 0.169.0-alpha.11.1. App-server catalog resolved all three entry points. Live Thermos run blocked by Windows sandbox access. Desktop interaction and full workflows pending. |
+| Hermes Agent | Two generated external skill directories | Same package checks | Hermes Agent 0.18.2 detected both packages in an isolated Windows profile. Live workflow pending. |
 | Gemini CLI | Two generated extensions | Same package checks | Client not present on initial Windows PATH |
 
 Update this table only with actual evidence. A passing generator test does not prove model behavior or external integrations. Platform CI checks packaging and scripts; it does not authenticate AI accounts.
