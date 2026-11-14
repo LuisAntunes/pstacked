@@ -1,0 +1,13 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "thermos",
+  "version": "0.1.0",
+  "description": "Thermo-nuclear branch review: deep correctness and security audits plus harsh code-quality rubrics, parallel subagents, thermos orchestration, and optional take-the-wheel and FSD merge-ready flows. Adapted for codex by pstacked.",
+  "author": {
+    "name": "Cursor",
+    "email": "plugins@cursor.com"
+  },
+  "repository": "https://github.com/LuisAntunes/pstacked",
+  "homepage": "https://github.com/LuisAntunes/pstacked",
+  "license": "MIT"
+}

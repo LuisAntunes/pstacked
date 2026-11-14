@@ -4,7 +4,10 @@ import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, st
 import { dirname, join, posix, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { writePortable, slash, readText, readEntry, gitExecutables } from "./portable-harness.mjs";
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const executables = gitExecutables(ROOT);
 const PSTACK = join(ROOT, "pstack");
 const SKILLS = join(PSTACK, "skills");
 // Outside pstack/ so Cursor, which copies the whole plugin folder, does not install this tree too.
@@ -61,7 +64,7 @@ function walk(dir) {
 }
 
 function file(path) {
-  return { bytes: readFileSync(path), executable: (statSync(path).mode & 0o111) !== 0 };
+  return readEntry(path, ROOT, executables);
 }
 
 const skills = readdirSync(SKILLS).filter((name) => existsSync(join(SKILLS, name, "SKILL.md")));
@@ -75,7 +78,7 @@ function classify(skill) {
     [...line.matchAll(route)].some(({ groups }) => !linksToSkill(line, groups.bold ?? groups.command));
   const usesCursorNames = new Set();
   for (const path of walk(dir).filter((path) => path.endsWith(".md"))) {
-    const text = readFileSync(path, "utf8");
+    const text = readText(path);
     for (const term of TERMS) if (term.re.test(text)) usesCursorNames.add(term.key);
     if (text.split("\n").some(namesBareSkill)) usesCursorNames.add(ROUTE_KEY);
   }
@@ -91,12 +94,12 @@ for (const [skill, { usesCursorNames, wrap }] of classes) {
   if (usesCursorNames.size > 0 && !wrap) problems.push(`skills/${skill}/SKILL.md uses Cursor names but has no H1`);
   for (const key of usesCursorNames) users.set(key, [...(users.get(key) ?? []), skill]);
   // Cursor runs a skill by its folder name and Claude Code lists it by its frontmatter `name`, so the two must match. The Agent Skills spec limits both to SKILL_NAME.
-  const frontmatter = readFileSync(join(SKILLS, skill, "SKILL.md"), "utf8").match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
+  const frontmatter = readText(join(SKILLS, skill, "SKILL.md")).match(/^---\n([\s\S]*?)\n---/)?.[1] ?? "";
   const name = frontmatter.match(/^name:(.*)$/m)?.[1].trim().replace(/^(["'])(.*)\1$/, "$2");
   if (name !== skill) problems.push(`skills/${skill}/SKILL.md has name ${JSON.stringify(name ?? "")}, not its folder name ${skill}`);
   if (!SKILL_NAME.test(skill) || skill.length > 64) problems.push(`skills/${skill} is not lowercase words joined by hyphens, at most 64 characters`);
 }
-const adapter = readFileSync(join(PSTACK, ADAPTER), "utf8");
+const adapter = readText(join(PSTACK, ADAPTER));
 for (const [key, using] of users) {
   if (!adapter.includes(key)) problems.push(`Claude Code adapter has no row for ${key}, used by ${using.join(", ")}`);
 }
@@ -124,7 +127,7 @@ function render() {
     join(PSTACK, ADAPTER),
     join(PSTACK, "README.md"),
   ];
-  const files = new Map(copies.map((path) => [relative(PSTACK, path), file(path)]));
+  const files = new Map(copies.map((path) => [slash(relative(PSTACK, path)), file(path)]));
   const line =
     `In Claude Code, read [the Claude Code adapter](../../${ADAPTER}) once per session before you follow this skill. ` +
     "It maps the Cursor names in pstack skills to Claude Code.";
@@ -165,10 +168,10 @@ for (const link of dangling) console.log(`FAIL ${link}`);
 if (dangling.length > 0) process.exit(1);
 
 if (process.argv.includes("--check")) {
-  const onDisk = new Map(existsSync(OUT) ? walk(OUT).map((path) => [relative(OUT, path), file(path)]) : []);
+  const onDisk = new Map(existsSync(OUT) ? walk(OUT).map((path) => [slash(relative(OUT, path)), file(path)]) : []);
   const drifted = [...new Set([...rendered.keys(), ...onDisk.keys()])].sort().filter((path) => {
     const [want, have] = [rendered.get(path), onDisk.get(path)];
-    return !want || !have || !want.bytes.equals(have.bytes) || want.executable !== have.executable;
+    return !want || !have || !want.bytes.equals(have.bytes) || (process.platform !== "win32" && want.executable !== have.executable);
   });
   for (const path of drifted.slice(0, 20)) console.log(`harness/pstack/${path}`);
   if (drifted.length > 0) {
@@ -186,3 +189,5 @@ if (process.argv.includes("--check")) {
   const wrapped = [...classes.values()].filter(({ wrap }) => wrap).length;
   console.log(`${skills.length} skills, ${wrapped} SKILL.md files with the adapter line`);
 }
+
+writePortable(ROOT, process.argv.includes('--check'));

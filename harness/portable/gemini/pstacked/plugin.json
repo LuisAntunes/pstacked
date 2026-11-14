@@ -1,0 +1,12 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pstacked",
+  "version": "0.1.0",
+  "description": "if you want to go fast, go deep first. pstack helps you write less, but higher quality code. rigorous agent workflows you can parallelize with confidence. Adapted for gemini by pstacked.",
+  "author": {
+    "name": "Lauren Tan"
+  },
+  "repository": "https://github.com/LuisAntunes/pstacked",
+  "homepage": "https://github.com/LuisAntunes/pstacked",
+  "license": "MIT"
+}
