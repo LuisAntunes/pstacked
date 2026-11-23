@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0",
+  "version": "0.1.1",
   "upstreamRepository": "cursor/plugins",
   "initialUpstreamCommit": "3dbd22ff12742fb28c9700b9760baa29ed41dc13",
-  "lastIntegratedUpstreamCommit": "3dbd22ff12742fb28c9700b9760baa29ed41dc13"
+  "lastIntegratedUpstreamCommit": "7a583913eb1b8d1a0ee76753d1a2cf072e7b54f9"
 }
